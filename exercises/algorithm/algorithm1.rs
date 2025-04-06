@@ -2,7 +2,7 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
+
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
@@ -69,15 +69,78 @@ impl<T> LinkedList<T> {
             },
         }
     }
-	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
-	{
-		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
+    pub fn merge(mut list_a: LinkedList<T>, mut list_b: LinkedList<T>) -> Self
+    where
+        T: PartialOrd,
+    {
+        // 安全获取链表A的值
+        let mut vec_a = Vec::new();
+        let mut current = list_a.start.take();
+        while let Some(node_ptr) = current {
+            unsafe {
+                let node = Box::from_raw(node_ptr.as_ptr());
+                vec_a.push(node.val);
+                current = node.next;
+            }
         }
-	}
+
+        // 安全获取链表B的值
+        let mut vec_b = Vec::new();
+        let mut current = list_b.start.take();
+        while let Some(node_ptr) = current {
+            unsafe {
+                let node = Box::from_raw(node_ptr.as_ptr());
+                vec_b.push(node.val);
+                current = node.next;
+            }
+        }
+
+        // 转换为消费型迭代器
+        let mut a_iter = vec_a.into_iter();
+        let mut b_iter = vec_b.into_iter();
+        let mut a_peek = a_iter.next();
+        let mut b_peek = b_iter.next();
+
+        let mut merged = Vec::new();
+
+        // 改进的合并算法
+        loop {
+            match (a_peek.take(), b_peek.take()) {
+                (Some(a), Some(b)) => {
+                    if a <= b {
+                        merged.push(a);
+                        a_peek = a_iter.next();
+                        b_peek = Some(b);
+                    } else {
+                        merged.push(b);
+                        b_peek = b_iter.next();
+                        a_peek = Some(a);
+                    }
+                }
+                (Some(a), None) => {
+                    merged.push(a);
+                    merged.extend(a_iter);
+                    break;
+                }
+                (None, Some(b)) => {
+                    merged.push(b);
+                    merged.extend(b_iter);
+                    break;
+                }
+                (None, None) => break,
+            }
+        }
+
+        // 构建新链表
+        let mut list_c = LinkedList::new();
+        for val in merged {
+            list_c.add(val);
+        }
+        list_c
+    }
+
+
+
 }
 
 impl<T> Display for LinkedList<T>

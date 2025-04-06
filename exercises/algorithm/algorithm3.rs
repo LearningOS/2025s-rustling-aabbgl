@@ -5,9 +5,28 @@
 */
 // I AM NOT DONE
 
-fn sort<T>(array: &mut [T]){
-	//TODO
+fn sort<T: Ord>(array: &mut [T]) {
+    let len = array.len();
+    if len <= 1 {
+        return;
+    }
+
+    // 冒泡排序实现
+    for i in 0..len {
+        let mut swapped = false;
+        for j in 0..len - i - 1 {
+            if array[j] > array[j + 1] {
+                array.swap(j, j + 1);
+                swapped = true;
+            }
+        }
+        // 提前退出优化
+        if !swapped {
+            break;
+        }
+    }
 }
+
 #[cfg(test)]
 mod tests {
     use super::*;
